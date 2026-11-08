@@ -1,0 +1,6 @@
+{
+  "name": "SNL Lubricants",
+  "description": "Official B2B lubricants catalogue, group-based pricing, AI price list reader, Excel synchronization, and distributor/dealer ordering platform for Saifi National Lubricants (SNL).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

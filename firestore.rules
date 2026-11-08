@@ -1,0 +1,520 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Core Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isBootstrappedSuperAdmin() {
+      return isSignedIn() &&
+             ('email' in request.auth.token) &&
+             ('email_verified' in request.auth.token) &&
+             request.auth.token.email == 'muhammad.dh52@gmail.com' &&
+             request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        isBootstrappedSuperAdmin() ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // 1. User Profiles (/users/{userId})
+    function isValidUserProfile(data) {
+      return data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 &&
+             data.fullName is string && data.fullName.size() >= 1 && data.fullName.size() <= 120 &&
+             data.businessName is string && data.businessName.size() >= 1 && data.businessName.size() <= 160 &&
+             data.phone is string && data.phone.size() >= 3 && data.phone.size() <= 40 &&
+             data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+             data.role is string && data.role in ['SUPER_ADMIN', 'STAFF', 'DISTRIBUTOR', 'DEALER'] &&
+             data.customerCode is string && data.customerCode.size() >= 1 && data.customerCode.size() <= 64 &&
+             data.city is string && data.city.size() >= 1 && data.city.size() <= 80 &&
+             data.address is string && data.address.size() >= 1 && data.address.size() <= 400 &&
+             data.priceGroupId is string && data.priceGroupId.size() >= 1 && data.priceGroupId.size() <= 64 &&
+             data.accountStatus is string && data.accountStatus in ['PENDING_APPROVAL', 'ACTIVE', 'REJECTED', 'DEACTIVATED'] &&
+             (!('staffPermissions' in data) || (data.staffPermissions is string && data.staffPermissions.size() <= 500)) &&
+             (!('creditAllowed' in data) || data.creditAllowed is bool) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId} {
+      // PII Isolation: Only owner or Admin can read a user document
+      allow get: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+
+      // Self-registration (must be DEALER or DISTRIBUTOR with PENDING_APPROVAL) OR Admin creation
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       incoming().keys().hasAll(['uid', 'fullName', 'businessName', 'phone', 'email', 'role', 'customerCode', 'city', 'address', 'priceGroupId', 'accountStatus', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['uid', 'fullName', 'businessName', 'phone', 'email', 'role', 'customerCode', 'city', 'address', 'priceGroupId', 'accountStatus', 'staffPermissions', 'creditAllowed', 'createdAt', 'updatedAt']) &&
+                       isValidUserProfile(incoming()) && (
+                         isAdmin() ||
+                         (
+                           request.auth.uid == userId &&
+                           incoming().uid == request.auth.uid &&
+                           incoming().role in ['DEALER', 'DISTRIBUTOR'] &&
+                           incoming().accountStatus == 'PENDING_APPROVAL'
+                         )
+                       );
+
+      // Update: Dealers/Distributors can only update non-RBAC contact fields; Admin can update all fields
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidUserProfile(incoming()) &&
+                       incoming().uid == existing().uid &&
+                       incoming().createdAt == existing().createdAt && (
+                         isAdmin() ||
+                         (
+                           request.auth.uid == userId &&
+                           incoming().role == existing().role &&
+                           incoming().priceGroupId == existing().priceGroupId &&
+                           incoming().accountStatus == existing().accountStatus &&
+                           incoming().customerCode == existing().customerCode &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['fullName', 'businessName', 'phone', 'city', 'address', 'updatedAt'])
+                         )
+                       );
+
+      allow delete: if isSignedIn() && isValidId(userId) && isAdmin();
+    }
+
+    // 2. Trusted Admin Registry (/admins/{adminId})
+    function isValidAdminRecord(data) {
+      return data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 &&
+             data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+             data.role is string && data.role in ['SUPER_ADMIN', 'STAFF'] &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && isValidId(adminId) && (request.auth.uid == adminId || isAdmin());
+      allow list: if isSignedIn() && isAdmin();
+      allow create: if isSignedIn() &&
+                       isValidId(adminId) &&
+                       incoming().keys().hasAll(['uid', 'email', 'role', 'createdAt']) &&
+                       incoming().keys().hasOnly(['uid', 'email', 'role', 'createdAt']) &&
+                       isValidAdminRecord(incoming()) &&
+                       (isAdmin() || (request.auth.uid == adminId && incoming().uid == request.auth.uid));
+      allow update: if isSignedIn() &&
+                       isValidId(adminId) &&
+                       isValidAdminRecord(incoming()) &&
+                       incoming().uid == existing().uid &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['email', 'role']) &&
+                       isAdmin();
+      allow delete: if isSignedIn() && isValidId(adminId) && isAdmin();
+    }
+
+    // 3. Products (/products/{productId})
+    function isValidProduct(data) {
+      return data.sku is string && data.sku.size() >= 1 && data.sku.size() <= 64 &&
+             data.serialNo is int && data.serialNo >= 0 && data.serialNo <= 100000 &&
+             data.productName is string && data.productName.size() >= 1 && data.productName.size() <= 160 &&
+             (!('name' in data) || (data.name is string && data.name.size() >= 1 && data.name.size() <= 160)) &&
+             data.categoryId is string && data.categoryId.size() >= 1 && data.categoryId.size() <= 64 &&
+             data.categoryName is string && data.categoryName.size() >= 1 && data.categoryName.size() <= 100 &&
+             (!('category' in data) || (data.category is string && data.category.size() >= 1 && data.category.size() <= 100)) &&
+             (!('priceTiers' in data) || (data.priceTiers is map && data.priceTiers.keys().size() <= 20)) &&
+             (!('stockAvailability' in data) || (data.stockAvailability is string && data.stockAvailability in ['IN_STOCK', 'LOW_STOCK', 'OUT_OF_STOCK'])) &&
+             (!('inStock' in data) || data.inStock is bool) &&
+             (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 500)) &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
+             data.grade is string && data.grade.size() >= 1 && data.grade.size() <= 80 &&
+             data.packagingSize is string && data.packagingSize.size() >= 1 && data.packagingSize.size() <= 80 &&
+             data.packagingUnit is string && data.packagingUnit.size() >= 1 && data.packagingUnit.size() <= 40 &&
+             data.cartonQty is int && data.cartonQty >= 1 && data.cartonQty <= 1000 &&
+             data.minOrderQty is int && data.minOrderQty >= 1 && data.minOrderQty <= 10000 &&
+             (data.mrpPkr is int || data.mrpPkr is float) && data.mrpPkr >= 0 &&
+             data.stockQty is int && data.stockQty >= 0 &&
+             data.reservedQty is int && data.reservedQty >= 0 &&
+             data.isFeatured is bool &&
+             data.isActive is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /products/{productId} {
+      allow get: if isSignedIn() && isValidId(productId) && (resource.data.isActive == true || isAdmin());
+      allow list: if isSignedIn() && (resource.data.isActive == true || isAdmin());
+      allow create: if isSignedIn() &&
+                       isValidId(productId) &&
+                       incoming().keys().hasAll(['sku', 'serialNo', 'productName', 'categoryId', 'categoryName', 'grade', 'packagingSize', 'packagingUnit', 'cartonQty', 'minOrderQty', 'mrpPkr', 'stockQty', 'reservedQty', 'isFeatured', 'isActive', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['sku', 'serialNo', 'name', 'productName', 'category', 'categoryId', 'categoryName', 'priceTiers', 'stockAvailability', 'inStock', 'imageUrl', 'description', 'grade', 'packagingSize', 'packagingUnit', 'cartonQty', 'minOrderQty', 'mrpPkr', 'stockQty', 'reservedQty', 'isFeatured', 'isActive', 'createdAt', 'updatedAt']) &&
+                       isValidProduct(incoming()) &&
+                       isAdmin();
+      allow update: if isSignedIn() &&
+                       isValidId(productId) &&
+                       isValidProduct(incoming()) &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['sku', 'serialNo', 'name', 'productName', 'category', 'categoryId', 'categoryName', 'priceTiers', 'stockAvailability', 'inStock', 'imageUrl', 'description', 'grade', 'packagingSize', 'packagingUnit', 'cartonQty', 'minOrderQty', 'mrpPkr', 'stockQty', 'reservedQty', 'isFeatured', 'isActive', 'updatedAt']) &&
+                       isAdmin();
+      allow delete: if isSignedIn() && isValidId(productId) && isAdmin();
+    }
+
+    // 4. Categories (/categories/{categoryId})
+    function isValidCategory(data) {
+      return data.categoryCode is string && data.categoryCode.size() >= 1 && data.categoryCode.size() <= 64 &&
+             data.categoryName is string && data.categoryName.size() >= 1 && data.categoryName.size() <= 100 &&
+             data.nameUrdu is string && data.nameUrdu.size() >= 1 && data.nameUrdu.size() <= 100 &&
+             data.sortOrder is int && data.sortOrder >= 0 && data.sortOrder <= 10000 &&
+             data.isActive is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    match /categories/{categoryId} {
+      allow get: if isSignedIn() && isValidId(categoryId) && (resource.data.isActive == true || isAdmin());
+      allow list: if isSignedIn() && (resource.data.isActive == true || isAdmin());
+      allow create: if isSignedIn() &&
+                       isValidId(categoryId) &&
+                       incoming().keys().hasAll(['categoryCode', 'categoryName', 'nameUrdu', 'sortOrder', 'isActive', 'createdAt']) &&
+                       incoming().keys().hasOnly(['categoryCode', 'categoryName', 'nameUrdu', 'sortOrder', 'isActive', 'createdAt']) &&
+                       isValidCategory(incoming()) &&
+                       isAdmin();
+      allow update: if isSignedIn() &&
+                       isValidId(categoryId) &&
+                       isValidCategory(incoming()) &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['categoryCode', 'categoryName', 'nameUrdu', 'sortOrder', 'isActive']) &&
+                       isAdmin();
+      allow delete: if isSignedIn() && isValidId(categoryId) && isAdmin();
+    }
+
+    // 5. Price Groups (/priceGroups/{groupId})
+    function isValidPriceGroup(data) {
+      return data.groupCode is string && data.groupCode.size() >= 1 && data.groupCode.size() <= 64 &&
+             data.groupName is string && data.groupName.size() >= 1 && data.groupName.size() <= 100 &&
+             data.description is string && data.description.size() <= 300 &&
+             (data.defaultDiscountPercent is int || data.defaultDiscountPercent is float) && data.defaultDiscountPercent >= 0 && data.defaultDiscountPercent <= 100 &&
+             data.minOrderQty is int && data.minOrderQty >= 1 && data.minOrderQty <= 10000 &&
+             data.isActive is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /priceGroups/{groupId} {
+      allow get: if isSignedIn() && isValidId(groupId) && (resource.data.isActive == true || isAdmin());
+      allow list: if isSignedIn() && (resource.data.isActive == true || isAdmin());
+      allow create: if isSignedIn() &&
+                       isValidId(groupId) &&
+                       incoming().keys().hasAll(['groupCode', 'groupName', 'description', 'defaultDiscountPercent', 'minOrderQty', 'isActive', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['groupCode', 'groupName', 'description', 'defaultDiscountPercent', 'minOrderQty', 'isActive', 'createdAt', 'updatedAt']) &&
+                       isValidPriceGroup(incoming()) &&
+                       isAdmin();
+      allow update: if isSignedIn() &&
+                       isValidId(groupId) &&
+                       isValidPriceGroup(incoming()) &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['groupCode', 'groupName', 'description', 'defaultDiscountPercent', 'minOrderQty', 'isActive', 'updatedAt']) &&
+                       isAdmin();
+      allow delete: if isSignedIn() && isValidId(groupId) && isAdmin();
+    }
+
+    // 6. Group Prices (/groupPrices/{priceId})
+    function isValidGroupPrice(data) {
+      return data.sku is string && data.sku.size() >= 1 && data.sku.size() <= 64 &&
+             data.priceGroupCode is string && data.priceGroupCode.size() >= 1 && data.priceGroupCode.size() <= 64 &&
+             (data.sellingPricePkr is int || data.sellingPricePkr is float) && data.sellingPricePkr >= 0 &&
+             (data.mrpPkr is int || data.mrpPkr is float) && data.mrpPkr >= 0 &&
+             data.minOrderQty is int && data.minOrderQty >= 1 && data.minOrderQty <= 10000 &&
+             (data.discountPercent is int || data.discountPercent is float) && data.discountPercent >= 0 && data.discountPercent <= 100 &&
+             data.effectiveFrom is string && data.effectiveFrom.size() <= 40 &&
+             data.isActive is bool &&
+             data.updatedBy is string && data.updatedBy.size() >= 1 && data.updatedBy.size() <= 128 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /groupPrices/{priceId} {
+      // Customers can only query active prices; Admin can read all
+      allow get: if isSignedIn() && isValidId(priceId) && (resource.data.isActive == true || isAdmin());
+      allow list: if isSignedIn() && (resource.data.isActive == true || isAdmin());
+      allow create: if isSignedIn() &&
+                       isValidId(priceId) &&
+                       incoming().keys().hasAll(['sku', 'priceGroupCode', 'sellingPricePkr', 'mrpPkr', 'minOrderQty', 'discountPercent', 'effectiveFrom', 'isActive', 'updatedBy', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['sku', 'priceGroupCode', 'sellingPricePkr', 'mrpPkr', 'minOrderQty', 'discountPercent', 'effectiveFrom', 'isActive', 'updatedBy', 'createdAt', 'updatedAt']) &&
+                       isValidGroupPrice(incoming()) &&
+                       isAdmin();
+      allow update: if isSignedIn() &&
+                       isValidId(priceId) &&
+                       isValidGroupPrice(incoming()) &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['sku', 'priceGroupCode', 'sellingPricePkr', 'mrpPkr', 'minOrderQty', 'discountPercent', 'effectiveFrom', 'isActive', 'updatedBy', 'updatedAt']) &&
+                       isAdmin();
+      allow delete: if isSignedIn() && isValidId(priceId) && isAdmin();
+    }
+
+    // 7. Orders (/orders/{orderId})
+    function isValidOrder(data) {
+      return data.orderNumber is string && data.orderNumber.size() >= 5 && data.orderNumber.size() <= 40 &&
+             data.customerId is string && data.customerId.size() >= 1 && data.customerId.size() <= 128 &&
+             data.customerCode is string && data.customerCode.size() >= 1 && data.customerCode.size() <= 64 &&
+             data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 120 &&
+             data.businessName is string && data.businessName.size() >= 1 && data.businessName.size() <= 160 &&
+             data.customerType is string && data.customerType in ['DEALER', 'DISTRIBUTOR', 'SUPER_ADMIN', 'STAFF'] &&
+             data.phone is string && data.phone.size() >= 3 && data.phone.size() <= 40 &&
+             data.city is string && data.city.size() >= 1 && data.city.size() <= 80 &&
+             data.deliveryAddress is string && data.deliveryAddress.size() >= 1 && data.deliveryAddress.size() <= 400 &&
+             data.orderInstructions is string && data.orderInstructions.size() <= 500 &&
+             data.priceGroupId is string && data.priceGroupId.size() >= 1 && data.priceGroupId.size() <= 64 &&
+             data.itemsSummary is string && data.itemsSummary.size() >= 1 && data.itemsSummary.size() <= 4000 &&
+             data.itemsCount is int && data.itemsCount >= 1 && data.itemsCount <= 500 &&
+             data.totalCartons is int && data.totalCartons >= 1 && data.totalCartons <= 100000 &&
+             data.priceSnapshotText is string && data.priceSnapshotText.size() >= 1 && data.priceSnapshotText.size() <= 10000 &&
+             (data.subtotal is int || data.subtotal is float) && data.subtotal >= 0 &&
+             (data.discount is int || data.discount is float) && data.discount >= 0 &&
+             (data.deliveryCharges is int || data.deliveryCharges is float) && data.deliveryCharges >= 0 &&
+             (data.grandTotal is int || data.grandTotal is float) && data.grandTotal >= 0 &&
+             data.paymentMethod is string && data.paymentMethod in ['COD', 'BANK_TRANSFER', 'CREDIT_ACCOUNT'] &&
+             data.paymentStatus is string && data.paymentStatus in ['UNPAID', 'PAID', 'PARTIAL'] &&
+             data.orderStatus is string && data.orderStatus in ['PENDING_ADMIN_APPROVAL', 'CONFIRMED', 'PROCESSING', 'READY_FOR_DISPATCH', 'DISPATCHED', 'DELIVERED', 'CANCELLED', 'REJECTED'] &&
+             data.visibleToCustomer is bool &&
+             data.rejectionReason is string && data.rejectionReason.size() <= 500 &&
+             data.approvedBy is string && data.approvedBy.size() <= 128 &&
+             data.rejectedBy is string && data.rejectedBy.size() <= 128 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /orders/{orderId} {
+      // Customer can only read their own orders that are visibleToCustomer == true (rejected orders disappear from customer app!)
+      // Admin can read all orders including the Rejected Orders Archive
+      allow get: if isSignedIn() && isValidId(orderId) && (
+        isAdmin() ||
+        (resource.data.customerId == request.auth.uid && resource.data.visibleToCustomer == true)
+      );
+      allow list: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.customerId == request.auth.uid && resource.data.visibleToCustomer == true)
+      );
+
+      // Customer creates order: must belong to request.auth.uid and start as PENDING_ADMIN_APPROVAL
+      allow create: if isSignedIn() &&
+                       isValidId(orderId) &&
+                       incoming().keys().hasAll(['orderNumber', 'customerId', 'customerCode', 'customerName', 'businessName', 'customerType', 'phone', 'city', 'deliveryAddress', 'orderInstructions', 'priceGroupId', 'itemsSummary', 'itemsCount', 'totalCartons', 'priceSnapshotText', 'subtotal', 'discount', 'deliveryCharges', 'grandTotal', 'paymentMethod', 'paymentStatus', 'orderStatus', 'visibleToCustomer', 'rejectionReason', 'approvedBy', 'rejectedBy', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['orderNumber', 'customerId', 'customerCode', 'customerName', 'businessName', 'customerType', 'phone', 'city', 'deliveryAddress', 'orderInstructions', 'priceGroupId', 'itemsSummary', 'itemsCount', 'totalCartons', 'priceSnapshotText', 'subtotal', 'discount', 'deliveryCharges', 'grandTotal', 'paymentMethod', 'paymentStatus', 'orderStatus', 'visibleToCustomer', 'rejectionReason', 'approvedBy', 'rejectedBy', 'createdAt', 'updatedAt']) &&
+                       isValidOrder(incoming()) &&
+                       incoming().customerId == request.auth.uid &&
+                       incoming().orderStatus == 'PENDING_ADMIN_APPROVAL' &&
+                       incoming().visibleToCustomer == true &&
+                       incoming().approvedBy == '' &&
+                       incoming().rejectedBy == '';
+
+      // Update: Terminal state locking on REJECTED (cannot be accepted later!)
+      // Price snapshot and totals are immutable!
+      allow update: if isSignedIn() &&
+                       isValidId(orderId) &&
+                       isValidOrder(incoming()) &&
+                       existing().orderStatus != 'REJECTED' &&
+                       incoming().customerId == existing().customerId &&
+                       incoming().orderNumber == existing().orderNumber &&
+                       incoming().priceSnapshotText == existing().priceSnapshotText &&
+                       incoming().subtotal == existing().subtotal &&
+                       incoming().grandTotal == existing().grandTotal &&
+                       incoming().createdAt == existing().createdAt && (
+                         // Action 1: Admin status / approval / rejection update
+                         (
+                           isAdmin() &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['orderStatus', 'paymentStatus', 'visibleToCustomer', 'rejectionReason', 'approvedBy', 'rejectedBy', 'updatedAt'])
+                         ) ||
+                         // Action 2: Customer cancels their own PENDING_ADMIN_APPROVAL order
+                         (
+                           request.auth.uid == existing().customerId &&
+                           existing().orderStatus == 'PENDING_ADMIN_APPROVAL' &&
+                           incoming().orderStatus == 'CANCELLED' &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['orderStatus', 'updatedAt'])
+                         )
+                       );
+
+      allow delete: if false; // Physical deletion forbidden; use soft deletion to Admin Rejected Archive
+    }
+
+    // 8. Inventory Movements (/inventoryMovements/{movementId})
+    function isValidInventoryMovement(data) {
+      return data.sku is string && data.sku.size() >= 1 && data.sku.size() <= 64 &&
+             data.productName is string && data.productName.size() >= 1 && data.productName.size() <= 160 &&
+             data.movementType is string && data.movementType in ['MANUAL_ADJUSTMENT', 'ORDER_RESERVED', 'ORDER_DEDUCTED', 'ORDER_RELEASED', 'EXCEL_SYNC'] &&
+             data.quantityDelta is int &&
+             data.previousStock is int && data.previousStock >= 0 &&
+             data.newStock is int && data.newStock >= 0 &&
+             data.referenceId is string && data.referenceId.size() <= 64 &&
+             data.note is string && data.note.size() <= 300 &&
+             data.performedBy is string && data.performedBy.size() >= 1 && data.performedBy.size() <= 128 &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    match /inventoryMovements/{movementId} {
+      allow get, list: if isSignedIn() && isAdmin();
+      allow create: if isSignedIn() &&
+                       isValidId(movementId) &&
+                       incoming().keys().hasAll(['sku', 'productName', 'movementType', 'quantityDelta', 'previousStock', 'newStock', 'referenceId', 'note', 'performedBy', 'createdAt']) &&
+                       incoming().keys().hasOnly(['sku', 'productName', 'movementType', 'quantityDelta', 'previousStock', 'newStock', 'referenceId', 'note', 'performedBy', 'createdAt']) &&
+                       isValidInventoryMovement(incoming()) &&
+                       isAdmin();
+      allow update, delete: if false;
+    }
+
+    // 9. Price Import Batches (/priceImports/{importId})
+    function isValidPriceImportBatch(data) {
+      return data.fileName is string && data.fileName.size() >= 1 && data.fileName.size() <= 200 &&
+             data.sourceType is string && data.sourceType in ['AI_IMAGE_OCR', 'EXCEL_WIDE', 'EXCEL_LONG', 'CSV', 'GOOGLE_SHEETS'] &&
+             data.adminId is string && data.adminId.size() >= 1 && data.adminId.size() <= 128 &&
+             data.totalRecords is int && data.totalRecords >= 0 &&
+             data.productsCreated is int && data.productsCreated >= 0 &&
+             data.productsUpdated is int && data.productsUpdated >= 0 &&
+             data.pricesUpdated is int && data.pricesUpdated >= 0 &&
+             data.failedRows is int && data.failedRows >= 0 &&
+             data.status is string && data.status in ['DRAFT_PREVIEW', 'COMPLETED', 'ROLLED_BACK', 'FAILED'] &&
+             data.beforeSnapshotData is string && data.beforeSnapshotData.size() <= 50000 &&
+             data.afterSnapshotData is string && data.afterSnapshotData.size() <= 50000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /priceImports/{importId} {
+      allow get, list: if isSignedIn() && isAdmin();
+      allow create: if isSignedIn() &&
+                       isValidId(importId) &&
+                       incoming().keys().hasAll(['fileName', 'sourceType', 'adminId', 'totalRecords', 'productsCreated', 'productsUpdated', 'pricesUpdated', 'failedRows', 'status', 'beforeSnapshotData', 'afterSnapshotData', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['fileName', 'sourceType', 'adminId', 'totalRecords', 'productsCreated', 'productsUpdated', 'pricesUpdated', 'failedRows', 'status', 'beforeSnapshotData', 'afterSnapshotData', 'createdAt', 'updatedAt']) &&
+                       isValidPriceImportBatch(incoming()) &&
+                       isAdmin();
+      allow update: if isSignedIn() &&
+                       isValidId(importId) &&
+                       isValidPriceImportBatch(incoming()) &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['status', 'productsCreated', 'productsUpdated', 'pricesUpdated', 'failedRows', 'afterSnapshotData', 'updatedAt']) &&
+                       isAdmin();
+      allow delete: if false;
+    }
+
+    // 10. Price History (/priceHistory/{historyId})
+    function isValidPriceHistory(data) {
+      return data.sku is string && data.sku.size() >= 1 && data.sku.size() <= 64 &&
+             data.productName is string && data.productName.size() >= 1 && data.productName.size() <= 160 &&
+             data.priceGroupCode is string && data.priceGroupCode.size() >= 1 && data.priceGroupCode.size() <= 64 &&
+             (data.oldPricePkr is int || data.oldPricePkr is float) && data.oldPricePkr >= 0 &&
+             (data.newPricePkr is int || data.newPricePkr is float) && data.newPricePkr >= 0 &&
+             data.adminId is string && data.adminId.size() >= 1 && data.adminId.size() <= 128 &&
+             data.importId is string && data.importId.size() >= 1 && data.importId.size() <= 128 &&
+             data.effectiveDate is string && data.effectiveDate.size() <= 40 &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    match /priceHistory/{historyId} {
+      allow get, list: if isSignedIn() && isAdmin();
+      allow create: if isSignedIn() &&
+                       isValidId(historyId) &&
+                       incoming().keys().hasAll(['sku', 'productName', 'priceGroupCode', 'oldPricePkr', 'newPricePkr', 'adminId', 'importId', 'effectiveDate', 'createdAt']) &&
+                       incoming().keys().hasOnly(['sku', 'productName', 'priceGroupCode', 'oldPricePkr', 'newPricePkr', 'adminId', 'importId', 'effectiveDate', 'createdAt']) &&
+                       isValidPriceHistory(incoming()) &&
+                       isAdmin();
+      allow update, delete: if false;
+    }
+
+    // 11. Notifications (/notifications/{notificationId})
+    function isValidNotification(data) {
+      return data.targetUserId is string && data.targetUserId.size() >= 1 && data.targetUserId.size() <= 128 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 160 &&
+             data.message is string && data.message.size() >= 1 && data.message.size() <= 1000 &&
+             data.type is string && data.type.size() >= 1 && data.type.size() <= 64 &&
+             data.referenceId is string && data.referenceId.size() <= 128 &&
+             data.isRead is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    match /notifications/{notificationId} {
+      allow get: if isSignedIn() && isValidId(notificationId) && (resource.data.targetUserId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.targetUserId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() &&
+                       isValidId(notificationId) &&
+                       incoming().keys().hasAll(['targetUserId', 'title', 'message', 'type', 'referenceId', 'isRead', 'createdAt']) &&
+                       incoming().keys().hasOnly(['targetUserId', 'title', 'message', 'type', 'referenceId', 'isRead', 'createdAt']) &&
+                       isValidNotification(incoming()) &&
+                       (isAdmin() || incoming().targetUserId == 'ADMIN_ALL' || incoming().targetUserId == request.auth.uid);
+      allow update: if isSignedIn() &&
+                       isValidId(notificationId) &&
+                       isValidNotification(incoming()) &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().targetUserId == existing().targetUserId &&
+                       (resource.data.targetUserId == request.auth.uid || isAdmin()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['isRead']);
+      allow delete: if isSignedIn() && isValidId(notificationId) && isAdmin();
+    }
+
+    // 12. WhatsApp Delivery Logs (/whatsappDeliveryLogs/{logId})
+    function isValidWhatsAppLog(data) {
+      return data.orderNumber is string && data.orderNumber.size() >= 1 && data.orderNumber.size() <= 40 &&
+             data.recipientPhone is string && data.recipientPhone.size() >= 3 && data.recipientPhone.size() <= 40 &&
+             data.eventType is string && data.eventType.size() >= 1 && data.eventType.size() <= 40 &&
+             data.deliveryMode is string && data.deliveryMode in ['CLOUD_API_CONFIRMED', 'CLOUD_API_FAILED', 'CLICK_TO_CHAT_PREPARED'] &&
+             data.messagePreview is string && data.messagePreview.size() >= 1 && data.messagePreview.size() <= 4000 &&
+             data.apiResponse is string && data.apiResponse.size() <= 1000 &&
+             data.createdBy is string && data.createdBy.size() >= 1 && data.createdBy.size() <= 128 &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    match /whatsappDeliveryLogs/{logId} {
+      allow get, list: if isSignedIn() && isAdmin();
+      allow create: if isSignedIn() &&
+                       isValidId(logId) &&
+                       incoming().keys().hasAll(['orderNumber', 'recipientPhone', 'eventType', 'deliveryMode', 'messagePreview', 'apiResponse', 'createdBy', 'createdAt']) &&
+                       incoming().keys().hasOnly(['orderNumber', 'recipientPhone', 'eventType', 'deliveryMode', 'messagePreview', 'apiResponse', 'createdBy', 'createdAt']) &&
+                       isValidWhatsAppLog(incoming()) &&
+                       (incoming().createdBy == request.auth.uid || isAdmin());
+      allow update, delete: if false;
+    }
+
+    // 13. Company & App Settings (/appSettings/{settingId})
+    function isValidCompanySettings(data) {
+      return data.companyName is string && data.companyName.size() >= 1 && data.companyName.size() <= 160 &&
+             data.brandName is string && data.brandName.size() >= 1 && data.brandName.size() <= 60 &&
+             data.companyPhone is string && data.companyPhone.size() >= 3 && data.companyPhone.size() <= 40 &&
+             data.companyCity is string && data.companyCity.size() >= 1 && data.companyCity.size() <= 80 &&
+             data.whatsappBusinessAccountId is string && data.whatsappBusinessAccountId.size() <= 128 &&
+             data.whatsappPhoneNumberId is string && data.whatsappPhoneNumberId.size() <= 128 &&
+             data.companyWhatsappNumber is string && data.companyWhatsappNumber.size() <= 40 &&
+             data.whatsappNotificationsEnabled is bool &&
+             data.googleSheetUrl is string && data.googleSheetUrl.size() <= 500 &&
+             data.googleSheetWorksheet is string && data.googleSheetWorksheet.size() <= 100 &&
+             data.googleSheetLastSync is string && data.googleSheetLastSync.size() <= 60 &&
+             data.googleSheetAutoSync is bool &&
+             (data.defaultDeliveryChargesPkr is int || data.defaultDeliveryChargesPkr is float) && data.defaultDeliveryChargesPkr >= 0 &&
+             data.lowStockThreshold is int && data.lowStockThreshold >= 0 &&
+             data.allowExcelStockUpdate is bool &&
+             data.updatedBy is string && data.updatedBy.size() >= 1 && data.updatedBy.size() <= 128 &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /appSettings/{settingId} {
+      allow get: if isSignedIn() && isValidId(settingId) && (settingId == 'global' || isAdmin());
+      allow list: if isSignedIn() && isAdmin();
+      allow create, update: if isSignedIn() &&
+                               isValidId(settingId) &&
+                               incoming().keys().hasAll(['companyName', 'brandName', 'companyPhone', 'companyCity', 'whatsappBusinessAccountId', 'whatsappPhoneNumberId', 'companyWhatsappNumber', 'whatsappNotificationsEnabled', 'googleSheetUrl', 'googleSheetWorksheet', 'googleSheetLastSync', 'googleSheetAutoSync', 'defaultDeliveryChargesPkr', 'lowStockThreshold', 'allowExcelStockUpdate', 'updatedBy', 'updatedAt']) &&
+                               incoming().keys().hasOnly(['companyName', 'brandName', 'companyPhone', 'companyCity', 'whatsappBusinessAccountId', 'whatsappPhoneNumberId', 'companyWhatsappNumber', 'whatsappNotificationsEnabled', 'googleSheetUrl', 'googleSheetWorksheet', 'googleSheetLastSync', 'googleSheetAutoSync', 'defaultDeliveryChargesPkr', 'lowStockThreshold', 'allowExcelStockUpdate', 'updatedBy', 'updatedAt']) &&
+                               isValidCompanySettings(incoming()) &&
+                               isAdmin();
+      allow delete: if false;
+    }
+  }
+}

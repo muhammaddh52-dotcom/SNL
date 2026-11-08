@@ -1,0 +1,1451 @@
+MASTER PROMPT — COMPLETE SNL LUBRICANTS AND DISTRIBUTOR ORDERING PLATFORM
+
+ROLE AND OBJECTIVE
+
+Act as a senior Android application architect, Kotlin developer, Firebase backend engineer, AI integration specialist, database architect, B2B e-commerce developer and professional UI/UX designer.
+
+Your task is to design, develop, implement, test and deliver a complete, functional, production-oriented Android application for my company.
+
+This is a real business application, not a demonstration, static prototype or visual-only UI.
+
+The application must allow my company to manage all products, prices, dealers, distributors, inventory and customer orders from one centralized system.
+
+Dealers and distributors must be able to browse products, see their authorized prices and place orders through their Android phones.
+
+All incoming orders must be received by the company administrator for approval.
+
+The company administrator must have complete control over products, prices, customers, orders and business operations.
+
+1. COMPANY INFORMATION AND BRANDING
+
+Company Name: SAIFI NATIONAL LUBRICANTS
+
+Brand Name: SNL
+
+Application Name: SNL LUBRICANTS
+
+Business Type: Lubricants Manufacturing, Marketing and Distribution.
+
+Business Location: Pakistan.
+
+Currency: Pakistani Rupees (PKR).
+
+Target Users:
+
+- Super Admin
+- Company Staff
+- Distributors
+- Dealers
+
+I will attach:
+
+1. My original SNL company logo.
+2. My actual company product price list as an image or screenshot.
+3. Optional Excel price list, if available.
+
+IMPORTANT BRANDING INSTRUCTIONS:
+
+Use the uploaded original SNL logo exactly as provided.
+
+Never modify:
+
+- Original logo design.
+- Company lettering.
+- Logo proportions.
+- Original logo colours.
+- Brand identity.
+
+Use the original logo on:
+
+- Splash screen.
+- Login screen.
+- Application header.
+- Home screen.
+- Product catalogue.
+- Invoices.
+- Order confirmations.
+- Company profile.
+
+Use a premium corporate colour scheme:
+
+- Red
+- Navy Blue
+- Yellow
+- White
+- Black
+
+Design the application to look like a professional international lubricant manufacturer's B2B ordering platform.
+
+2. APPLICATION TECHNOLOGY
+
+Build a genuine native Android application.
+
+Preferred technology stack:
+
+- Kotlin.
+- Jetpack Compose.
+- Material 3.
+- MVVM architecture.
+- Repository pattern.
+- Firebase Authentication.
+- Firebase Cloud Firestore.
+- Firebase Storage.
+- Firebase Cloud Messaging.
+- Firebase Cloud Functions.
+- Firebase App Check.
+- Secure server-side API integrations.
+- Google Gemini multimodal AI for price list image extraction.
+
+Use TypeScript/Node.js for trusted backend Cloud Functions.
+
+Use appropriate Android libraries for Excel file selection and file processing, with complex imports handled securely by the backend.
+
+Use real-time Firestore synchronization.
+
+IMPORTANT:
+
+Do not build a simple website instead of an Android application.
+
+If the current Google AI Studio environment cannot directly generate or compile a native Android project, explicitly explain the limitation and produce the complete native Android source project and build instructions. Do not silently substitute a web app.
+
+3. USER ACCOUNT AND ROLE MANAGEMENT
+
+Create four user roles.
+
+A. SUPER ADMIN
+
+Super Admin has complete company control.
+
+Permissions:
+
+- Manage all products.
+- Manage all product prices.
+- Manage price groups.
+- Manage dealers.
+- Manage distributors.
+- Manage company staff.
+- Approve new registrations.
+- Receive and approve orders.
+- Reject orders.
+- Manage inventory.
+- View reports.
+- Manage notifications.
+- Manage WhatsApp integration.
+- Manage application settings.
+
+B. COMPANY STAFF
+
+Staff accounts must be created by the Super Admin.
+
+Allow the Super Admin to assign specific permissions.
+
+Example permissions:
+
+- View orders.
+- Process orders.
+- Update dispatch status.
+- View customers.
+- View inventory.
+- View reports.
+
+Staff must not receive unauthorized access to price management, account permissions or sensitive configuration.
+
+C. DISTRIBUTOR
+
+Each distributor must have an individual account.
+
+Features:
+
+- Login.
+- View products.
+- View assigned distributor prices.
+- Search products.
+- Add products to cart.
+- Place bulk orders.
+- Track orders.
+- View order history.
+- View invoices.
+- Contact company.
+
+D. DEALER
+
+Each dealer must have an individual account.
+
+Features:
+
+- Login.
+- View assigned dealer prices.
+- Browse product catalogue.
+- Search products.
+- Add products to cart.
+- Place orders.
+- Track orders.
+- View order history.
+- Download invoices.
+- Contact company.
+
+4. ACCOUNT CREATION AND APPROVAL
+
+Implement BOTH account creation methods.
+
+METHOD A: ADMIN-CREATED ACCOUNTS
+
+Super Admin can:
+
+- Create a dealer account.
+- Create a distributor account.
+- Assign customer ID.
+- Assign business name.
+- Assign phone number.
+- Assign city.
+- Assign delivery address.
+- Assign price group.
+- Activate or deactivate account.
+
+METHOD B: SELF-REGISTRATION
+
+Allow dealers and distributors to register independently.
+
+Registration fields:
+
+- Full Name.
+- Business Name.
+- Phone Number.
+- Email.
+- City.
+- Complete Address.
+- Business Type.
+- Optional Business Registration Details.
+
+New accounts must initially have PENDING_APPROVAL status.
+
+The administrator must approve or reject each registration.
+
+Pending accounts cannot place orders or access restricted pricing.
+
+Only the Super Admin can create or authorize administrator accounts.
+
+Implement secure login, password reset, session management and logout.
+
+Support email/password authentication and optional phone OTP authentication when properly configured.
+
+5. PRODUCT MANAGEMENT
+
+Create a complete Product Management module.
+
+Admin must be able to add unlimited products whenever needed.
+
+Product fields:
+
+- Product Name.
+- SKU / Product Code.
+- Category.
+- Product Image.
+- Product Description.
+- Grade / Viscosity.
+- Packaging Size.
+- Packaging Unit.
+- MRP.
+- Minimum Order Quantity.
+- Carton Quantity.
+- Stock Quantity.
+- Product Availability.
+- Featured Product.
+- Created Date.
+- Updated Date.
+
+Admin functions:
+
+- Add products.
+- Edit products.
+- Delete products with confirmation.
+- Upload product images.
+- Create unlimited categories.
+- Update descriptions.
+- Change packaging details.
+- Activate/deactivate products.
+- Search by product name or SKU.
+- Import products through Excel.
+- Import products from images using AI extraction.
+
+Never invent actual company product names or specifications.
+
+Use my attached price list image to extract actual company data.
+
+6. PRODUCT CATALOGUE
+
+Create a premium product catalogue for dealers and distributors.
+
+Each product card must display:
+
+- Product image.
+- Product name.
+- SKU.
+- Grade.
+- Packaging size.
+- Applicable customer price.
+- Availability.
+- Add to Cart button.
+
+Include:
+
+- Product search.
+- Category filters.
+- Sorting.
+- Latest products.
+- Featured products.
+- Product details.
+- Quantity selection.
+- Favourite products.
+
+Products added or updated by Admin must automatically appear in authorized customer catalogues without requiring application reinstallation.
+
+7. ADVANCED PRICE GROUP MANAGEMENT
+
+This is a critical business feature.
+
+Implement group-based pricing.
+
+Initial price groups:
+
+1. Standard Dealer.
+2. Premium Dealer.
+3. Distributor.
+4. Special Dealer.
+
+Allow the Super Admin to create unlimited additional price groups.
+
+Admin must be able to:
+
+- Create price groups.
+- Edit price groups.
+- Assign customers to groups.
+- Change customer groups.
+- Assign prices to each group.
+- Set minimum order quantities.
+- Set discounts.
+- Set effective dates.
+- Activate/deactivate prices.
+
+A product can have different prices for different customer groups.
+
+Example:
+
+Product: SNL Engine Oil
+
+Standard Dealer: Admin-defined price.
+
+Premium Dealer: Admin-defined price.
+
+Distributor: Admin-defined price.
+
+Special Dealer: Admin-defined price.
+
+These are illustrative group names only. Never invent actual prices.
+
+Every customer must automatically see the price assigned to their account's price group.
+
+A dealer must never see unauthorized distributor or other dealer group prices.
+
+The Super Admin may optionally assign a customer-specific price override, if enabled.
+
+8. AI PRICE LIST IMAGE READER — VERY IMPORTANT
+
+Implement an AI-powered Price List Image Import System using Google Gemini multimodal capabilities.
+
+I will attach my actual company price list image when creating the project.
+
+You must inspect this attachment and understand its table structure.
+
+Extract the actual visible information, including:
+
+- Product Name.
+- Product Code / SKU, if available.
+- Grade / Viscosity.
+- Packaging Size.
+- Product Category, if available.
+- Dealer Price.
+- Distributor Price.
+- Other price columns.
+- MRP.
+- Minimum Order Quantity, if available.
+
+If the image contains multiple price columns, identify the corresponding price group headings.
+
+If the image contains only one price column, ask the administrator which price group it belongs to.
+
+If the price group cannot be identified confidently, never assume it.
+
+AI IMAGE EXTRACTION REQUIREMENTS:
+
+1. Read the complete attached image.
+2. Detect table headings.
+3. Detect product rows.
+4. Extract product names.
+5. Extract product codes.
+6. Extract packaging sizes.
+7. Extract grade information.
+8. Extract all visible prices.
+9. Preserve decimal values.
+10. Preserve exact numerical digits.
+11. Identify unclear or unreadable entries.
+12. Show OCR confidence for extracted records where available.
+
+IMPORTANT OCR SAFETY:
+
+Do not guess unclear prices.
+
+For example, if the image could contain either 1,250 or 1,750, flag that value for manual verification.
+
+Do not silently convert or round extracted prices.
+
+Do not invent missing product information.
+
+Create an AI extraction preview containing:
+
+- Total products detected.
+- Product names extracted.
+- SKUs extracted.
+- Price groups detected.
+- Prices extracted.
+- Unreadable values.
+- Uncertain rows.
+- Duplicate candidates.
+
+Allow the Admin to correct extracted data before importing it.
+
+The attached image must be treated as an initial data source, not merely as a decorative image.
+
+Prepare its extracted data as a draft import.
+
+Do not automatically commit uncertain OCR results to the live database.
+
+After Admin confirmation, create or update the relevant products and price records.
+
+Also implement this feature inside the finished application so that I can upload new price list images whenever required.
+
+Support:
+
+- JPG.
+- JPEG.
+- PNG.
+- PDF where document extraction is configured.
+
+Use secure server-side Gemini API integration.
+
+Never expose Gemini API keys or other private credentials inside the Android APK.
+
+9. COMPLETE EXCEL AND CSV PRICE LIST IMPORT SYSTEM
+
+Create a dedicated Admin module:
+
+EXCEL PRICE LIST IMPORT & SYNCHRONIZATION.
+
+Supported formats:
+
+- XLSX.
+- CSV.
+- Legacy XLS where supported.
+- Google Sheets.
+
+Provide:
+
+- Upload Excel.
+- Upload CSV.
+- Connect Google Sheets.
+- Download Excel Template.
+- Import Preview.
+- Column Mapping.
+- Import History.
+- Rollback Previous Import.
+
+A. OFFICIAL EXCEL WORKBOOK STRUCTURE
+
+Provide a downloadable Excel template with these worksheets:
+
+1. START HERE.
+2. Products.
+3. Price Matrix.
+4. Group Prices.
+5. Price Groups.
+6. Inventory.
+
+PRODUCTS SHEET:
+
+SKU
+ProductName
+CategoryName
+GradeViscosity
+PackSize
+PackUnit
+Description
+ImageURL
+IsActive
+
+PRICE MATRIX SHEET — WIDE FORMAT:
+
+SKU
+Standard_Dealer_Price_PKR
+Premium_Dealer_Price_PKR
+Distributor_Price_PKR
+Special_Dealer_Price_PKR
+MRP_PKR
+MinimumOrderQty
+EffectiveFrom
+EffectiveUntil
+IsActive
+
+One row per SKU, with different customer prices in separate columns.
+
+GROUP PRICES SHEET — LONG FORMAT:
+
+SKU
+PriceGroupCode
+SellingPricePKR
+MRP_PKR
+MinimumOrderQty
+EffectiveFrom
+EffectiveUntil
+IsActive
+
+One row per SKU and price group.
+
+PRICE GROUPS SHEET:
+
+PriceGroupCode
+PriceGroupName
+Description
+IsActive
+
+INVENTORY SHEET:
+
+SKU
+StockQty
+SyncStock
+StockNote
+
+Allow BOTH pricing formats:
+
+- Separate price columns.
+- Separate price group worksheets/rows.
+
+The administrator must select the appropriate import mode.
+
+If both formats contain conflicting entries for the same SKU and price group, flag the conflict before import.
+
+B. AUTOMATIC COLUMN MAPPING
+
+Different Excel files may use different column names.
+
+Automatically recognize common aliases.
+
+Examples:
+
+SKU:
+SKU, Product Code, Item Code, Product ID, Code.
+
+Product Name:
+Product Name, Item Name, Product, Description.
+
+Dealer Price:
+Dealer Price, Dealer Rate, D-Price.
+
+Distributor Price:
+Distributor Price, Distributor Rate, Dist Rate.
+
+Packaging:
+Packing, Pack Size, Package Size.
+
+Category:
+Category, Product Category, Product Type.
+
+Allow manual column mapping.
+
+Save previously used mapping profiles for future uploads.
+
+Do not map uncertain columns without administrator confirmation.
+
+C. AUTOMATIC PRODUCT MATCHING
+
+Use SKU as the primary unique identifier.
+
+For existing products:
+
+- Match SKU.
+- Update applicable product details.
+- Update relevant price group prices.
+- Preserve existing product ID.
+- Preserve existing order history.
+- Preserve existing image if the imported image field is blank.
+
+For new products:
+
+- Create a new product.
+- Generate a permanent product ID.
+- Create its relevant price records.
+- Publish it after successful validation and administrator confirmation.
+
+If SKU is missing, use product name + grade + packaging as a candidate matching method, but require manual administrator confirmation.
+
+Never automatically merge two products solely because their names look similar.
+
+D. PRICE IMPORT VALIDATION
+
+- Empty cells mean NO CHANGE.
+- Blank prices must never overwrite existing prices with zero.
+- Invalid prices must be flagged.
+- Duplicate SKU records must be detected.
+- Duplicate SKU + PriceGroup records must be detected.
+- Unknown price groups must be flagged.
+- Missing rows must not delete products.
+- Stock must not update unless explicitly enabled.
+- All prices are PKR.
+- Existing order prices must remain unchanged.
+
+E. IMPORT PREVIEW
+
+Before importing, display:
+
+- Total rows.
+- Existing products found.
+- Products to update.
+- New products to create.
+- Prices to update.
+- Unchanged records.
+- Duplicate records.
+- Invalid rows.
+- Missing information.
+- Unknown price groups.
+
+Display old and new prices side by side.
+
+Provide an explicit CONFIRM IMPORT button.
+
+F. IMPORT HISTORY AND ROLLBACK
+
+Save:
+
+- Import ID.
+- File name.
+- Source type.
+- Administrator ID.
+- Date and time.
+- Total records.
+- Products created.
+- Products updated.
+- Prices updated.
+- Failed rows.
+- Import status.
+
+Save before-and-after snapshots.
+
+Allow Super Admin to roll back an import without deleting unrelated changes or customer orders.
+
+Use server-side batch processing and duplicate-import protection.
+
+10. GOOGLE SHEETS INTEGRATION
+
+Allow Admin to connect a Google Sheets document.
+
+Features:
+
+- Paste Google Sheets URL.
+- Secure Google OAuth connection.
+- Select spreadsheet.
+- Select worksheet.
+- Preview data.
+- Map columns.
+- Synchronize manually.
+- Optional scheduled synchronization.
+- Show last sync date.
+- Show sync status.
+- Show failed records.
+
+Support the same separate-column and separate-sheet structures.
+
+A private Google Sheet must use authorized access.
+
+A URL alone does not grant access.
+
+Store OAuth credentials securely on the backend.
+
+Automatic synchronization must never silently publish uncertain price changes.
+
+For scheduled synchronization, use preview/approval rules or an explicitly enabled trusted auto-approval policy.
+
+11. PRICE UPDATE SAFETY AND PRICE HISTORY
+
+Create a complete price change history.
+
+Whenever Admin imports a new price list, record:
+
+- Old price.
+- New price.
+- Product SKU.
+- Price group.
+- Administrator.
+- Import ID.
+- Effective date.
+- Change timestamp.
+
+Maintain historical price records.
+
+IMPORTANT:
+
+When a customer places an order, save an immutable snapshot of the applicable price.
+
+A future Excel import must never change prices in previously submitted or accepted orders.
+
+If the current price changes between adding an item to cart and submitting the order, show the customer the updated price and require confirmation before submission.
+
+12. SHOPPING CART AND ORDER PLACEMENT
+
+Create a professional B2B shopping cart.
+
+Customers must be able to:
+
+- Select products.
+- Enter quantities.
+- Add multiple products.
+- Update quantities.
+- Remove items.
+- View applicable unit prices.
+- View subtotal.
+- View discounts.
+- View delivery charges.
+- View estimated final amount.
+
+CHECKOUT FIELDS:
+
+- Customer Name.
+- Business Name.
+- Dealer / Distributor ID.
+- Phone Number.
+- City.
+- Complete Delivery Address.
+- Order Instructions.
+- Payment Method.
+
+PAYMENT METHODS:
+
+1. Cash on Delivery.
+2. Bank Transfer.
+3. Credit Account, only when enabled by Admin.
+
+Generate a unique order number.
+
+Format:
+
+SNL-YYYYMMDD-XXXX
+
+When the customer submits an order:
+
+- Validate the authenticated account.
+- Validate account approval.
+- Validate the assigned price group.
+- Validate current product prices.
+- Validate minimum order quantities.
+- Validate product availability.
+- Calculate the final amount on the trusted backend.
+- Save the order in Firestore.
+- Save the exact price snapshot.
+- Assign PENDING_ADMIN_APPROVAL status.
+- Notify Admin.
+
+Do not trust prices or totals submitted by the Android client.
+
+Use secure Cloud Functions and Firestore transactions.
+
+Prevent duplicate order submissions.
+
+13. ADMIN ORDER ACCEPTANCE AND REJECTION SYSTEM
+
+This is a mandatory feature.
+
+Every new dealer or distributor order must go to the administrator for approval.
+
+Create a dedicated Admin Dashboard section:
+
+PENDING ORDERS.
+
+Display:
+
+- Order Number.
+- Customer Name.
+- Business Name.
+- Dealer / Distributor.
+- Phone Number.
+- City.
+- Order Date.
+- Product Names.
+- Product SKUs.
+- Quantities.
+- Unit Prices.
+- Subtotal.
+- Discounts.
+- Grand Total.
+- Payment Method.
+- Delivery Address.
+
+Provide two prominent administrator buttons:
+
+GREEN BUTTON: ACCEPT ORDER.
+
+RED BUTTON: REJECT ORDER.
+
+A. ACCEPT ORDER
+
+When Admin clicks ACCEPT:
+
+1. Verify order is pending.
+2. Verify the customer is active.
+3. Verify the saved price snapshot.
+4. Check available stock.
+5. Confirm the order.
+6. Change status to CONFIRMED.
+7. Record Admin ID.
+8. Record approval timestamp.
+9. Reserve stock according to inventory policy.
+10. Notify the customer.
+11. Notify the relevant staff if configured.
+
+The order must retain the original submitted prices.
+
+B. REJECT ORDER
+
+When Admin clicks REJECT:
+
+1. Show confirmation dialog.
+2. Allow an optional rejection reason.
+3. Confirm the action.
+4. Set order status to REJECTED.
+5. Remove the order from the customer's active order list and normal order history.
+6. Remove it from Pending Orders.
+7. Release any inventory reservation if applicable.
+8. Notify the customer.
+9. Save rejection reason and timestamp.
+
+IMPORTANT DELETION POLICY:
+
+When an order is rejected, it must effectively disappear from the customer's application.
+
+However, use secure soft deletion rather than irreversible physical deletion.
+
+Move its visibility to an Admin-only Rejected Orders Archive.
+
+Only authorized Admin users can access this archive.
+
+Preserve:
+
+- Original order details.
+- Customer information.
+- Original price snapshot.
+- Rejection reason.
+- Rejected by.
+- Rejection timestamp.
+
+A rejected order cannot be accepted later. The customer must place a new order.
+
+C. ORDER STATUS SYSTEM
+
+Use these statuses:
+
+1. PENDING_ADMIN_APPROVAL.
+2. CONFIRMED.
+3. PROCESSING.
+4. READY_FOR_DISPATCH.
+5. DISPATCHED.
+6. DELIVERED.
+7. CANCELLED.
+8. REJECTED.
+
+Create separate Admin dashboard counters.
+
+Rejected and pending orders must not be counted as confirmed sales.
+
+14. ORDER TRACKING AND CUSTOMER ORDER HISTORY
+
+Create a personal My Orders screen for every customer.
+
+Show:
+
+- Order Number.
+- Order Date.
+- Products.
+- Quantities.
+- Unit Prices.
+- Total.
+- Payment Method.
+- Current Status.
+
+Allow customers to view order details.
+
+Provide a Reorder feature for eligible previous orders.
+
+When an order is rejected, hide it from the customer's normal order screens.
+
+When an order is accepted, display the confirmation and subsequent status updates.
+
+15. WHATSAPP BUSINESS INTEGRATION
+
+Integrate the official Meta WhatsApp Business Cloud API.
+
+This is required for sending order notifications to the company's WhatsApp number.
+
+When a new order is placed, send a notification to the company.
+
+MESSAGE FORMAT:
+
+NEW SNL ORDER RECEIVED
+
+SAIFI NATIONAL LUBRICANTS
+
+Order Number: [Order Number]
+
+Customer: [Customer Name]
+
+Business: [Business Name]
+
+Customer Type: [Dealer / Distributor]
+
+Phone: [Phone Number]
+
+City: [City]
+
+Products:
+[Product Names and Quantities]
+
+Total Amount: PKR [Total]
+
+Payment Method: [Payment Method]
+
+Delivery Address: [Address]
+
+Status: PENDING ADMIN APPROVAL.
+
+Also support WhatsApp notifications when:
+
+- Order accepted.
+- Order rejected.
+- Order processing.
+- Order dispatched.
+- Order delivered.
+
+Create WhatsApp configuration inside the Admin Dashboard.
+
+Configuration fields:
+
+- WhatsApp Business Account ID.
+- Phone Number ID.
+- Company WhatsApp Number.
+- Access Token.
+- Notification Settings.
+
+Store all sensitive tokens in backend secrets.
+
+Never expose tokens in Android code.
+
+Use approved WhatsApp templates where required by Meta policies.
+
+Create notification delivery logs.
+
+If automatic WhatsApp API integration is not configured, provide a WhatsApp click-to-chat fallback with a prepared order summary.
+
+Clearly distinguish prepared messages from confirmed API delivery.
+
+Never claim successful WhatsApp delivery unless the API confirms it.
+
+16. INVENTORY MANAGEMENT
+
+Create a complete stock management system.
+
+Features:
+
+- Product-wise stock.
+- Current inventory.
+- Low stock alerts.
+- Stock updates.
+- Stock movement history.
+- Inventory reports.
+- Reserved stock.
+- Available stock.
+
+Stock must not be deducted merely because an order is submitted.
+
+Reserve or deduct inventory only according to administrator confirmation settings.
+
+Use secure backend transactions.
+
+Prevent negative stock.
+
+Release reservations when appropriate after rejection or cancellation.
+
+Excel stock updates must be disabled by default and require explicit Admin approval.
+
+17. ADMIN DASHBOARD
+
+Create a premium Admin Dashboard inside the Android application.
+
+Display:
+
+- Total Products.
+- Total Dealers.
+- Total Distributors.
+- Total Staff.
+- Pending Registrations.
+- Pending Orders.
+- Confirmed Orders.
+- Processing Orders.
+- Dispatched Orders.
+- Delivered Orders.
+- Rejected Orders.
+- Monthly Sales.
+- Pending Payments.
+- Low Stock Products.
+
+Create separate management sections:
+
+1. Dashboard.
+2. Products.
+3. Categories.
+4. Price Groups.
+5. Excel Import.
+6. Image Price Reader.
+7. Google Sheets.
+8. Dealers.
+9. Distributors.
+10. Staff.
+11. Pending Orders.
+12. Confirmed Orders.
+13. Rejected Orders Archive.
+14. Inventory.
+15. Reports.
+16. Invoices.
+17. Notifications.
+18. WhatsApp Settings.
+19. App Settings.
+
+All statistics must come from actual Firebase data.
+
+18. INVOICE AND PDF GENERATION
+
+Create a professional SNL-branded invoice.
+
+Include:
+
+- Original SNL logo.
+- Company name.
+- Order number.
+- Invoice number.
+- Invoice date.
+- Customer details.
+- Product name.
+- SKU.
+- Packaging.
+- Quantity.
+- Unit price.
+- Subtotal.
+- Discount.
+- Delivery charges.
+- Final total.
+- Payment status.
+
+Allow:
+
+- PDF generation.
+- PDF download.
+- WhatsApp sharing.
+- Android sharing.
+
+Generate confirmed order documents using the saved order price snapshot.
+
+19. REPORTS AND ANALYTICS
+
+Create Admin-only business reports.
+
+Include:
+
+- Daily orders.
+- Weekly orders.
+- Monthly orders.
+- Total confirmed order value.
+- Dealer-wise sales.
+- Distributor-wise sales.
+- Product-wise sales.
+- Best-selling products.
+- Pending orders.
+- Delivered orders.
+- Rejected orders.
+- Inventory reports.
+- Price change history.
+
+Provide date filters.
+
+Allow CSV and PDF export.
+
+Never count rejected orders as confirmed sales.
+
+20. NOTIFICATION SYSTEM
+
+Implement:
+
+- In-app notifications.
+- Firebase Cloud Messaging.
+- Optional WhatsApp notifications.
+
+ADMIN NOTIFICATIONS:
+
+- New order.
+- New registration.
+- Order cancellation request.
+- Low stock alert.
+- Failed price import.
+- Completed price import.
+- Price list updated.
+
+CUSTOMER NOTIFICATIONS:
+
+- Registration approved.
+- Registration rejected.
+- Order received.
+- Order accepted.
+- Order rejected.
+- Order processing.
+- Order dispatched.
+- Order delivered.
+
+Maintain notification history.
+
+21. LANGUAGE AND UI DESIGN
+
+Support:
+
+- Urdu.
+- English.
+
+Default language: Urdu.
+
+Use proper RTL layout for Urdu and LTR layout for English.
+
+The interface must include:
+
+- Professional splash screen.
+- Login and registration.
+- Role-based home screens.
+- Modern product cards.
+- Search and filters.
+- Shopping cart.
+- Checkout.
+- Admin dashboard.
+- Order tracking.
+- Price import interface.
+- Image extraction interface.
+- Settings.
+
+Use clean typography, modern icons, smooth navigation and mobile-friendly layouts.
+
+Create an optional dark mode.
+
+22. FIREBASE DATABASE ARCHITECTURE
+
+Create an organized Firestore structure.
+
+Suggested collections:
+
+users
+products
+categories
+priceGroups
+orders
+inventory
+inventoryMovements
+notifications
+registrationRequests
+staffPermissions
+priceImports
+priceImportRows
+priceImportSnapshots
+priceHistory
+googleSheetConnections
+importColumnMappings
+whatsappDeliveryLogs
+auditLogs
+appSettings
+counters
+
+Use secure document IDs and appropriate subcollections.
+
+Each user should contain:
+
+uid
+fullName
+businessName
+phone
+email
+role
+customerCode
+city
+address
+priceGroupId
+accountStatus
+createdAt
+updatedAt
+
+Each product should contain:
+
+productId
+sku
+productName
+categoryId
+imageUrl
+description
+grade
+packagingSize
+packagingUnit
+isActive
+createdAt
+updatedAt
+
+Each order should contain:
+
+orderId
+orderNumber
+customerId
+customerName
+customerType
+priceGroupId
+items
+priceSnapshot
+subtotal
+discount
+deliveryCharges
+grandTotal
+paymentMethod
+paymentStatus
+orderStatus
+deliveryAddress
+rejectionReason
+approvedBy
+rejectedBy
+createdAt
+updatedAt
+
+Maintain permanent order price snapshots.
+
+23. SECURITY REQUIREMENTS
+
+Security is critical.
+
+Implement:
+
+- Firebase Authentication.
+- Firestore Security Rules.
+- Firebase App Check.
+- Role-based permissions.
+- Secure Cloud Functions.
+- Server-side price calculations.
+- Server-side order approval.
+- Customer data isolation.
+- Secure Google OAuth.
+- Secure WhatsApp credentials.
+- Secure Gemini API credentials.
+- Import validation.
+- Audit logs.
+- Duplicate order prevention.
+- Duplicate import prevention.
+
+DEALERS MUST NEVER:
+
+- Change their roles.
+- Change their assigned price groups.
+- Modify product prices.
+- Change inventory.
+- Approve their own orders.
+- Access other dealers' orders.
+- Access rejected order archives.
+- Access admin configuration.
+
+DISTRIBUTORS MUST HAVE THE SAME DATA PROTECTION.
+
+STAFF must only access explicitly assigned permissions.
+
+Only authorized backend functions can execute sensitive operations.
+
+Never store service account credentials or administrative secrets in the Android APK.
+
+Do not declare the application production-secure until Firestore rules and backend operations have been tested.
+
+24. INITIAL DATA IMPORT FROM MY ATTACHED PRICE LIST
+
+Before completing the initial setup:
+
+1. Inspect the attached SNL company logo.
+2. Inspect the attached actual product price list image.
+3. Identify the price list's structure.
+4. Extract product names.
+5. Extract SKU codes where visible.
+6. Extract grades and packaging sizes.
+7. Extract all price columns.
+8. Identify dealer and distributor prices where labelled.
+9. Identify any other price groups.
+10. Flag uncertain values.
+
+Prepare a structured initial import preview.
+
+If the image contains separate price columns, map each to the appropriate price group.
+
+If it contains separate product or price tables, identify their relationship.
+
+If a price group cannot be identified, ask the administrator to select it.
+
+Do not fabricate missing prices.
+
+Do not guess unreadable numbers.
+
+Do not silently add unverified OCR data to live products.
+
+Allow Admin to confirm the extracted information before saving it to Firebase.
+
+The attached price list must become the initial data source for the SNL catalogue, subject to administrator verification.
+
+25. FINAL TESTING AND QUALITY ASSURANCE
+
+Test the complete application with separate administrator, dealer, distributor and staff accounts.
+
+MANDATORY TEST CASES:
+
+1. Super Admin login.
+2. Staff login.
+3. Dealer self-registration.
+4. Distributor self-registration.
+5. Admin approval of registrations.
+6. Admin creates dealer account.
+7. Admin creates distributor account.
+8. Assign different price groups.
+9. Add a new product manually.
+10. Edit an existing product.
+11. Upload product images.
+12. Upload Excel price list.
+13. Import wide-format price matrix.
+14. Import long-format group prices.
+15. Test automatic column mapping.
+16. Extract prices from attached image.
+17. Correct uncertain OCR values.
+18. Update existing product prices.
+19. Add genuinely new products.
+20. Test duplicate SKU detection.
+21. Test invalid prices.
+22. Test Google Sheets connection.
+23. Test scheduled synchronization if enabled.
+24. Test import rollback.
+25. Verify stock is not updated without permission.
+26. Dealer sees correct dealer prices.
+27. Distributor sees correct distributor prices.
+28. Dealer adds products to cart.
+29. Dealer places an order.
+30. Admin receives the order.
+31. WhatsApp notification is triggered.
+32. Admin accepts an order.
+33. Customer receives acceptance notification.
+34. Admin rejects another order.
+35. Rejected order disappears from customer order screens.
+36. Rejected order appears only in Admin archive.
+37. Verify old order prices remain unchanged after a new Excel import.
+38. Verify unauthorized users cannot access other accounts.
+39. Verify inventory reservation and release.
+40. Verify PDF invoice generation.
+41. Verify CSV and PDF reports.
+42. Verify application navigation and all buttons.
+
+Fix all compilation errors, database errors, navigation problems and security issues.
+
+26. FINAL DELIVERABLES
+
+Deliver a complete working SNL Lubricants Android application with:
+
+1. Complete Android source project.
+2. Kotlin source code.
+3. Jetpack Compose UI.
+4. Firebase Authentication.
+5. Firestore integration.
+6. Firebase Storage integration.
+7. Firebase Cloud Functions.
+8. Firestore Security Rules.
+9. Super Admin dashboard.
+10. Staff permissions.
+11. Dealer and distributor accounts.
+12. Product management.
+13. Group-based pricing.
+14. Excel and CSV import.
+15. Google Sheets integration.
+16. AI price list image reader.
+17. Automatic product matching.
+18. Price history and rollback.
+19. Shopping cart.
+20. Order placement.
+21. Admin accept/reject workflow.
+22. Admin-only rejected order archive.
+23. Inventory management.
+24. WhatsApp Business integration.
+25. Firebase push notifications.
+26. PDF invoices.
+27. Reports and analytics.
+28. Urdu and English support.
+29. Signed APK build instructions.
+30. Complete Firebase setup guide.
+31. WhatsApp configuration guide.
+32. Testing report.
+
+27. FINAL EXECUTION INSTRUCTIONS
+
+Do not stop after generating the home screen.
+
+Do not create a static prototype.
+
+Do not use hardcoded sample prices.
+
+Do not use fake product data as actual company data.
+
+Do not create non-functional buttons.
+
+Do not pretend that Firebase, Google Sheets or WhatsApp integration is complete without configuring and testing the required services.
+
+First inspect all attached assets.
+
+Then create the application architecture.
+
+Then implement all major modules.
+
+Then configure the database and backend.
+
+Then integrate the attached price list image extraction.
+
+Then implement the complete Excel import and price synchronization system.
+
+Then implement the order approval and rejection system.
+
+Then test all major user journeys.
+
+Finally, build the Android application and provide the complete source project and APK build instructions.
+
+If any configuration requires my credentials or manual action, clearly identify the exact setup steps.
+
+If the project is too large for one generation pass, continue implementation in logical phases within the same project. Preserve existing working code and features between phases.
+
+Do not declare the application complete until the major workflows have been implemented and verified.
+
+THE FINAL GOAL:
+
+Create a complete, professional B2B business management and ordering platform for SAIFI NATIONAL LUBRICANTS.
+
+I want to manage my entire product catalogue, price lists, dealers, distributors, orders, inventory and sales from one centralized system.
+
+My dealers and distributors should be able to use their Android phones to browse the latest products, see their assigned prices and submit orders.
+
+I must receive every new order, review it and decide whether to ACCEPT or REJECT it.
+
+I must be able to upload a new Excel price list or price list image whenever required, and the application must automatically identify existing products, update their prices and prepare genuinely new products for addition.
+
+All changes must synchronize securely across the entire dealer and distributor network.
+
+Build this as a real, reliable and scalable SNL business application.

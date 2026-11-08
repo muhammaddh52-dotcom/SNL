@@ -1,0 +1,329 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Represents a Super Admin, Company Staff, Distributor, or Dealer account in the SNL Lubricants platform.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID of the user." },
+        "fullName": { "type": "string", "description": "Full name of the user or contact person." },
+        "businessName": { "type": "string", "description": "Registered dealership or distribution business name." },
+        "phone": { "type": "string", "description": "Contact phone number in Pakistan." },
+        "email": { "type": "string", "description": "Email address associated with the account." },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "STAFF", "DISTRIBUTOR", "DEALER"], "description": "Role in the SNL platform." },
+        "customerCode": { "type": "string", "description": "Assigned SNL customer or staff code." },
+        "city": { "type": "string", "description": "City in Pakistan." },
+        "address": { "type": "string", "description": "Complete delivery address." },
+        "priceGroupId": { "type": "string", "description": "Assigned price group code (e.g., STANDARD_DEALER, PREMIUM_DEALER, DISTRIBUTOR, SPECIAL_DEALER)." },
+        "accountStatus": { "type": "string", "enum": ["PENDING_APPROVAL", "ACTIVE", "REJECTED", "DEACTIVATED"], "description": "Approval and activation status." },
+        "staffPermissions": { "type": "string", "description": "Comma-separated staff permissions if role is STAFF." },
+        "creditAllowed": { "type": "boolean", "description": "Whether Credit Account payment method is enabled for this customer." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation via FieldValue.serverTimestamp()." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp of last update via FieldValue.serverTimestamp()." }
+      },
+      "required": ["uid", "fullName", "businessName", "phone", "email", "role", "customerCode", "city", "address", "priceGroupId", "accountStatus", "createdAt", "updatedAt"]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Trusted admin lookup record in /admins/{adminId}.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Admin UID." },
+        "email": { "type": "string", "description": "Admin email." },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "STAFF"], "description": "Admin or staff role." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation server timestamp." }
+      },
+      "required": ["uid", "email", "role", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "SNL Lubricant product record stored in /products/{productId} with name, category, distributor/dealer priceTiers map, and stockAvailability.",
+      "type": "object",
+      "properties": {
+        "sku": { "type": "string", "description": "Unique SKU / Product Code." },
+        "serialNo": { "type": "integer", "description": "Price list serial number." },
+        "name": { "type": "string", "description": "Product name." },
+        "productName": { "type": "string", "description": "Official SNL product name." },
+        "category": { "type": "string", "description": "Product category name." },
+        "categoryId": { "type": "string", "description": "Category code." },
+        "categoryName": { "type": "string", "description": "Category display name." },
+        "priceTiers": {
+          "type": "object",
+          "description": "Map of distributor and dealer group codes (DISTRIBUTOR, STANDARD_DEALER, PREMIUM_DEALER, SPECIAL_DEALER) to authorized PKR unit prices."
+        },
+        "stockAvailability": {
+          "type": "string",
+          "enum": ["IN_STOCK", "LOW_STOCK", "OUT_OF_STOCK"],
+          "description": "Stock availability status derived from availableStock."
+        },
+        "inStock": { "type": "boolean", "description": "Whether the product currently has available stock (> 0)." },
+        "imageUrl": { "type": "string", "description": "Product image URL or drawable reference." },
+        "description": { "type": "string", "description": "Technical specifications and description." },
+        "grade": { "type": "string", "description": "SAE viscosity / API grade or colour." },
+        "packagingSize": { "type": "string", "description": "Packaging specification (e.g., 700ml x 12, 1ltr x 12, 10ltr)." },
+        "packagingUnit": { "type": "string", "description": "Unit type (Carton, Bucket, Can)." },
+        "cartonQty": { "type": "integer", "description": "Units per carton/pack." },
+        "minOrderQty": { "type": "integer", "description": "Minimum order quantity." },
+        "mrpPkr": { "type": "number", "description": "Maximum retail price in PKR." },
+        "stockQty": { "type": "integer", "description": "Total physical stock quantity." },
+        "reservedQty": { "type": "integer", "description": "Stock reserved by confirmed orders." },
+        "isFeatured": { "type": "boolean", "description": "Whether highlighted as a featured product." },
+        "isActive": { "type": "boolean", "description": "Whether active and visible in catalogue." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": ["sku", "serialNo", "productName", "categoryId", "categoryName", "grade", "packagingSize", "packagingUnit", "cartonQty", "minOrderQty", "mrpPkr", "stockQty", "reservedQty", "isFeatured", "isActive", "createdAt", "updatedAt"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "SNL Product category.",
+      "type": "object",
+      "properties": {
+        "categoryCode": { "type": "string", "description": "Category identifier code." },
+        "categoryName": { "type": "string", "description": "Category display name." },
+        "nameUrdu": { "type": "string", "description": "Urdu category name." },
+        "sortOrder": { "type": "integer", "description": "Display sort order." },
+        "isActive": { "type": "boolean", "description": "Whether category is active." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": ["categoryCode", "categoryName", "nameUrdu", "sortOrder", "isActive", "createdAt"]
+    },
+    "PriceGroup": {
+      "title": "PriceGroup",
+      "description": "Customer price group (Standard Dealer, Premium Dealer, Distributor, Special Dealer, etc.).",
+      "type": "object",
+      "properties": {
+        "groupCode": { "type": "string", "description": "Unique price group code." },
+        "groupName": { "type": "string", "description": "Display name of the price group." },
+        "description": { "type": "string", "description": "Description of the pricing tier." },
+        "defaultDiscountPercent": { "type": "number", "description": "Optional group discount percentage." },
+        "minOrderQty": { "type": "integer", "description": "Default minimum order quantity for group." },
+        "isActive": { "type": "boolean", "description": "Whether the price group is active." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": ["groupCode", "groupName", "description", "defaultDiscountPercent", "minOrderQty", "isActive", "createdAt", "updatedAt"]
+    },
+    "GroupPrice": {
+      "title": "GroupPrice",
+      "description": "Price of a specific product SKU for a specific price group.",
+      "type": "object",
+      "properties": {
+        "sku": { "type": "string", "description": "Product SKU." },
+        "priceGroupCode": { "type": "string", "description": "Target price group code." },
+        "sellingPricePkr": { "type": "number", "description": "Authorized selling price in PKR." },
+        "mrpPkr": { "type": "number", "description": "MRP in PKR." },
+        "minOrderQty": { "type": "integer", "description": "Minimum order quantity." },
+        "discountPercent": { "type": "number", "description": "Discount percentage." },
+        "effectiveFrom": { "type": "string", "description": "Effective start date string." },
+        "isActive": { "type": "boolean", "description": "Whether price record is active." },
+        "updatedBy": { "type": "string", "description": "Admin UID who set this price." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": ["sku", "priceGroupCode", "sellingPricePkr", "mrpPkr", "minOrderQty", "discountPercent", "effectiveFrom", "isActive", "updatedBy", "createdAt", "updatedAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Dealer or Distributor B2B order with immutable price snapshot and soft-delete archive support.",
+      "type": "object",
+      "properties": {
+        "orderNumber": { "type": "string", "description": "Formatted SNL-YYYYMMDD-XXXX order number." },
+        "customerId": { "type": "string", "description": "Customer Firebase UID." },
+        "customerCode": { "type": "string", "description": "Assigned dealer/distributor code." },
+        "customerName": { "type": "string", "description": "Customer full name." },
+        "businessName": { "type": "string", "description": "Customer business name." },
+        "customerType": { "type": "string", "enum": ["DEALER", "DISTRIBUTOR", "SUPER_ADMIN", "STAFF"], "description": "Role of ordering customer." },
+        "phone": { "type": "string", "description": "Customer phone number." },
+        "city": { "type": "string", "description": "Delivery city." },
+        "deliveryAddress": { "type": "string", "description": "Complete delivery address." },
+        "orderInstructions": { "type": "string", "description": "Special delivery or dispatch instructions." },
+        "priceGroupId": { "type": "string", "description": "Price group applied at order time." },
+        "itemsSummary": { "type": "string", "description": "Human-readable summary of ordered products and quantities." },
+        "itemsCount": { "type": "integer", "description": "Total number of distinct line items." },
+        "totalCartons": { "type": "integer", "description": "Total quantity of cartons/units ordered." },
+        "priceSnapshotText": { "type": "string", "description": "Immutable serialized snapshot of SKU|Name|Packing|Grade|Qty|UnitPricePKR|LineTotalPKR." },
+        "subtotal": { "type": "number", "description": "Order subtotal in PKR." },
+        "discount": { "type": "number", "description": "Discount amount in PKR." },
+        "deliveryCharges": { "type": "number", "description": "Delivery charges in PKR." },
+        "grandTotal": { "type": "number", "description": "Final grand total in PKR." },
+        "paymentMethod": { "type": "string", "enum": ["COD", "BANK_TRANSFER", "CREDIT_ACCOUNT"], "description": "Selected payment method." },
+        "paymentStatus": { "type": "string", "enum": ["UNPAID", "PAID", "PARTIAL"], "description": "Payment status." },
+        "orderStatus": { "type": "string", "enum": ["PENDING_ADMIN_APPROVAL", "CONFIRMED", "PROCESSING", "READY_FOR_DISPATCH", "DISPATCHED", "DELIVERED", "CANCELLED", "REJECTED"], "description": "Order workflow state." },
+        "visibleToCustomer": { "type": "boolean", "description": "True for normal orders; false when soft-deleted/rejected so it disappears from customer screens and moves to Admin Rejected Archive." },
+        "rejectionReason": { "type": "string", "description": "Optional reason when rejected by Admin." },
+        "approvedBy": { "type": "string", "description": "Admin UID who approved the order." },
+        "rejectedBy": { "type": "string", "description": "Admin UID who rejected the order." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": ["orderNumber", "customerId", "customerCode", "customerName", "businessName", "customerType", "phone", "city", "deliveryAddress", "orderInstructions", "priceGroupId", "itemsSummary", "itemsCount", "totalCartons", "priceSnapshotText", "subtotal", "discount", "deliveryCharges", "grandTotal", "paymentMethod", "paymentStatus", "orderStatus", "visibleToCustomer", "rejectionReason", "approvedBy", "rejectedBy", "createdAt", "updatedAt"]
+    },
+    "InventoryMovement": {
+      "title": "InventoryMovement",
+      "description": "Audit log of stock additions, reservations, deductions, and releases.",
+      "type": "object",
+      "properties": {
+        "sku": { "type": "string", "description": "Product SKU." },
+        "productName": { "type": "string", "description": "Product name." },
+        "movementType": { "type": "string", "enum": ["MANUAL_ADJUSTMENT", "ORDER_RESERVED", "ORDER_DEDUCTED", "ORDER_RELEASED", "EXCEL_SYNC"], "description": "Type of stock change." },
+        "quantityDelta": { "type": "integer", "description": "Quantity change." },
+        "previousStock": { "type": "integer", "description": "Stock before change." },
+        "newStock": { "type": "integer", "description": "Stock after change." },
+        "referenceId": { "type": "string", "description": "Order number or Import ID." },
+        "note": { "type": "string", "description": "Movement note." },
+        "performedBy": { "type": "string", "description": "User UID." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": ["sku", "productName", "movementType", "quantityDelta", "previousStock", "newStock", "referenceId", "note", "performedBy", "createdAt"]
+    },
+    "PriceImportBatch": {
+      "title": "PriceImportBatch",
+      "description": "Record of an Excel, CSV, Google Sheets, or AI Image Price List import with rollback snapshot.",
+      "type": "object",
+      "properties": {
+        "fileName": { "type": "string", "description": "Uploaded file or source name." },
+        "sourceType": { "type": "string", "enum": ["AI_IMAGE_OCR", "EXCEL_WIDE", "EXCEL_LONG", "CSV", "GOOGLE_SHEETS"], "description": "Import source type." },
+        "adminId": { "type": "string", "description": "Admin UID who executed the import." },
+        "totalRecords": { "type": "integer", "description": "Total rows processed." },
+        "productsCreated": { "type": "integer", "description": "New products created." },
+        "productsUpdated": { "type": "integer", "description": "Existing products updated." },
+        "pricesUpdated": { "type": "integer", "description": "Price records created or updated." },
+        "failedRows": { "type": "integer", "description": "Number of flagged/skipped rows." },
+        "status": { "type": "string", "enum": ["DRAFT_PREVIEW", "COMPLETED", "ROLLED_BACK", "FAILED"], "description": "Import lifecycle status." },
+        "beforeSnapshotData": { "type": "string", "description": "Encoded snapshot of previous prices for one-click rollback." },
+        "afterSnapshotData": { "type": "string", "description": "Encoded snapshot of imported prices." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": ["fileName", "sourceType", "adminId", "totalRecords", "productsCreated", "productsUpdated", "pricesUpdated", "failedRows", "status", "beforeSnapshotData", "afterSnapshotData", "createdAt", "updatedAt"]
+    },
+    "PriceHistoryRecord": {
+      "title": "PriceHistoryRecord",
+      "description": "Immutable record of a product price change.",
+      "type": "object",
+      "properties": {
+        "sku": { "type": "string", "description": "Product SKU." },
+        "productName": { "type": "string", "description": "Product name." },
+        "priceGroupCode": { "type": "string", "description": "Price group code." },
+        "oldPricePkr": { "type": "number", "description": "Previous price in PKR." },
+        "newPricePkr": { "type": "number", "description": "New price in PKR." },
+        "adminId": { "type": "string", "description": "Admin UID." },
+        "importId": { "type": "string", "description": "Import batch ID or MANUAL." },
+        "effectiveDate": { "type": "string", "description": "Effective date." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": ["sku", "productName", "priceGroupCode", "oldPricePkr", "newPricePkr", "adminId", "importId", "effectiveDate", "createdAt"]
+    },
+    "AppNotification": {
+      "title": "AppNotification",
+      "description": "In-app notification for Admin or Customer.",
+      "type": "object",
+      "properties": {
+        "targetUserId": { "type": "string", "description": "Recipient UID or ADMIN_ALL." },
+        "title": { "type": "string", "description": "Notification title." },
+        "message": { "type": "string", "description": "Notification body." },
+        "type": { "type": "string", "description": "Notification category (NEW_ORDER, ORDER_ACCEPTED, ORDER_REJECTED, REGISTRATION, LOW_STOCK, PRICE_IMPORT)." },
+        "referenceId": { "type": "string", "description": "Related order or import ID." },
+        "isRead": { "type": "boolean", "description": "Whether read." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": ["targetUserId", "title", "message", "type", "referenceId", "isRead", "createdAt"]
+    },
+    "WhatsAppDeliveryLog": {
+      "title": "WhatsAppDeliveryLog",
+      "description": "Log of WhatsApp Business Cloud API notifications or prepared click-to-chat fallbacks.",
+      "type": "object",
+      "properties": {
+        "orderNumber": { "type": "string", "description": "Order number." },
+        "recipientPhone": { "type": "string", "description": "Recipient WhatsApp number." },
+        "eventType": { "type": "string", "description": "NEW_ORDER, ACCEPTED, REJECTED, PROCESSING, DISPATCHED, DELIVERED." },
+        "deliveryMode": { "type": "string", "enum": ["CLOUD_API_CONFIRMED", "CLOUD_API_FAILED", "CLICK_TO_CHAT_PREPARED"], "description": "Distinguishes confirmed Meta API delivery from prepared fallback message." },
+        "messagePreview": { "type": "string", "description": "Formatted WhatsApp message text." },
+        "apiResponse": { "type": "string", "description": "Meta Cloud API response or fallback note." },
+        "createdBy": { "type": "string", "description": "UID of triggering user." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": ["orderNumber", "recipientPhone", "eventType", "deliveryMode", "messagePreview", "apiResponse", "createdBy", "createdAt"]
+    },
+    "CompanySettings": {
+      "title": "CompanySettings",
+      "description": "Global application, WhatsApp Cloud API, Google Sheets, and inventory policy configuration.",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string", "description": "SAIFI NATIONAL LUBRICANTS" },
+        "brandName": { "type": "string", "description": "SNL" },
+        "companyPhone": { "type": "string", "description": "Official contact phone (+92 310 100 52 53)." },
+        "companyCity": { "type": "string", "description": "KARACHI" },
+        "whatsappBusinessAccountId": { "type": "string", "description": "Meta WhatsApp Business Account ID." },
+        "whatsappPhoneNumberId": { "type": "string", "description": "Meta WhatsApp Phone Number ID." },
+        "companyWhatsappNumber": { "type": "string", "description": "Company WhatsApp recipient number." },
+        "whatsappNotificationsEnabled": { "type": "boolean", "description": "Whether WhatsApp notifications are enabled." },
+        "googleSheetUrl": { "type": "string", "description": "Connected Google Sheet URL." },
+        "googleSheetWorksheet": { "type": "string", "description": "Selected worksheet name." },
+        "googleSheetLastSync": { "type": "string", "description": "Last synchronization timestamp string." },
+        "googleSheetAutoSync": { "type": "boolean", "description": "Whether scheduled sync preview is enabled." },
+        "defaultDeliveryChargesPkr": { "type": "number", "description": "Standard delivery charges in PKR." },
+        "lowStockThreshold": { "type": "integer", "description": "Threshold for low stock alerts." },
+        "allowExcelStockUpdate": { "type": "boolean", "description": "Explicit Admin toggle to allow Excel imports to update stock." },
+        "updatedBy": { "type": "string", "description": "Admin UID." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": ["companyName", "brandName", "companyPhone", "companyCity", "whatsappBusinessAccountId", "whatsappPhoneNumberId", "companyWhatsappNumber", "whatsappNotificationsEnabled", "googleSheetUrl", "googleSheetWorksheet", "googleSheetLastSync", "googleSheetAutoSync", "defaultDeliveryChargesPkr", "lowStockThreshold", "allowExcelStockUpdate", "updatedBy", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profiles for Super Admin, Staff, Distributors, and Dealers."
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Trusted Admin and Staff registry."
+    },
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Master SNL Lubricants product catalogue."
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Product categories."
+    },
+    "/priceGroups/{groupId}": {
+      "schema": { "$ref": "#/entities/PriceGroup" },
+      "description": "Price groups (Standard Dealer, Premium Dealer, Distributor, Special Dealer, etc.)."
+    },
+    "/groupPrices/{priceId}": {
+      "schema": { "$ref": "#/entities/GroupPrice" },
+      "description": "Group-based product pricing records."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Customer orders with immutable price snapshots and soft-deletion archive."
+    },
+    "/inventoryMovements/{movementId}": {
+      "schema": { "$ref": "#/entities/InventoryMovement" },
+      "description": "Stock movement history."
+    },
+    "/priceImports/{importId}": {
+      "schema": { "$ref": "#/entities/PriceImportBatch" },
+      "description": "Excel, CSV, Google Sheets, and AI Image Price List import batches with rollback snapshots."
+    },
+    "/priceHistory/{historyId}": {
+      "schema": { "$ref": "#/entities/PriceHistoryRecord" },
+      "description": "Historical log of all price updates."
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/AppNotification" },
+      "description": "In-app notifications for Admin and Customers."
+    },
+    "/whatsappDeliveryLogs/{logId}": {
+      "schema": { "$ref": "#/entities/WhatsAppDeliveryLog" },
+      "description": "WhatsApp Business Cloud API and click-to-chat delivery logs."
+    },
+    "/appSettings/{settingId}": {
+      "schema": { "$ref": "#/entities/CompanySettings" },
+      "description": "Global company, WhatsApp, Google Sheets, and inventory configuration."
+    }
+  }
+}
