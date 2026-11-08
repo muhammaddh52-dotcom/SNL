@@ -70,6 +70,15 @@ jobs:
             exit 1
           fi
 
+      - name: Configure Firebase Google Services (optional)
+        if: ${{ secrets.GOOGLE_SERVICES_JSON != '' }}
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
+          python3 -m json.tool app/google-services.json > /dev/null
+
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace --no-daemon
 
