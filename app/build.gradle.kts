@@ -20,6 +20,12 @@ android {
     versionName = "4.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+    // Google Services normally generates this from app/google-services.json.
+    // Keep CI compilation working if OAuth configuration has not been supplied yet.
+    if (!project.file("google-services.json").exists()) {
+      resValue("string", "default_web_client_id", "")
+    }
   }
 
   // Do not remove or modify these signingConfigs. They are necessary for building, installing,
