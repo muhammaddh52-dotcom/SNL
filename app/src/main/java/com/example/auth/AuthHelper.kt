@@ -84,6 +84,10 @@ fun attemptAutoSignIn(
         onUnauthenticated()
         return
     }
+    if (clientId.isBlank()) {
+        onUnauthenticated()
+        return
+    }
 
     val googleIdOption = GetGoogleIdOption.Builder()
         .setFilterByAuthorizedAccounts(true)
@@ -126,6 +130,10 @@ fun onGoogleSignInClicked(
         context.getString(R.string.default_web_client_id)
     } catch (e: Exception) {
         onAuthError("Google Sign-In configuration missing: default_web_client_id not found")
+        return
+    }
+    if (clientId.isBlank()) {
+        onAuthError("Google Sign-In is not configured. Add app/google-services.json with a Web OAuth client ID.")
         return
     }
 
